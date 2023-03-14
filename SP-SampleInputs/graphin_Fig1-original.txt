@@ -1,0 +1,8 @@
+s: a 3 c 5 e 2 
+a: b -4
+b: g 4
+c: d 6
+d: c -3 g 8
+e: f 3
+f: e -6 g 7
+g:

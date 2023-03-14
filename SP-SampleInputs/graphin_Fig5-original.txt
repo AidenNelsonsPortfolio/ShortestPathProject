@@ -1,0 +1,6 @@
+s: t 2 x 6
+t: x 7 y 4 z 2
+r: s 5 t 3
+x: y -1 z 1
+y: z -2
+z: 
