@@ -30,16 +30,18 @@ def InitializeSingleSource(G, s):
         v.pi = None
     s.d = 0
 
-def dfs(G):
+def dfs(G, s):
     for v in G.V.values():
         v.color = 'white'
         v.pi = None
     time = 0
+    time = dfsVisit(G, s, time)
     for v in G.V.values():
         if v.color == 'white':
             time = dfsVisit(G, v, time)
             if time == -1:
                 return -1
+    return 0
 
 def dfsVisit(G, u, time):
     time += 1
@@ -48,9 +50,10 @@ def dfsVisit(G, u, time):
     for v in G.Adj[u.key]:
         if v.color == 'white':
             v.pi = u
-            dfsVisit(G, v)
+            time = dfsVisit(G, v, time)
+            if time == -1:
+                return -1
         if v.color == 'gray':
-            print("Graph has a cycle")
             return -1
     u.color = 'black'
     time += 1
@@ -60,7 +63,10 @@ def dfsVisit(G, u, time):
 
 def TopologicalSort(G):
     # Graph has already been dfs'd, so we can just sort the vertices by finish time
-    G.V.sort(key=lambda x: x.f, reverse=True)
+    # Return a list of vertices in topological order using sorted() function, reversed
+
+    return sorted(G.V.values(), key=lambda x: x.f, reverse=True)
+
 
 def HasNegativeEdges(G):
     for u in G.V:
@@ -69,10 +75,12 @@ def HasNegativeEdges(G):
                 return True
     return False
 
+
 def Relax (u, v, w):
     if v.d > u.d + w:
         v.d = u.d + w
         v.pi = u
+
 
 def ExtractMin(Q):
     # Q is a self made min heap
@@ -95,10 +103,10 @@ def ExtractMin(Q):
 def Dijkstra (G, s):
     InitializeSingleSource(G, s)
     S = []
-    Q = G.V.values()
+    Q = list(G.V.values())
 
     # Swap s with first element
-    Q[0], Q[s.key] = Q[s.key], Q[0]
+    Q[0], Q[Q.index(s)] = Q[Q.index(s)], Q[0]
 
     while Q != []:
         u = ExtractMin(Q)
@@ -106,12 +114,14 @@ def Dijkstra (G, s):
         for v in G.Adj[u.key]:
             Relax(u, v, G.Adj[u.key][v])
 
+
 def BellmanFord(G, s):
     InitializeSingleSource(G, s)
     for _ in range(1, len(G.V)):
         for u in G.V:
             for v in G.Adj[u]:
                 Relax(G.V[u], v, G.Adj[u][v])
+
     for u in G.V:
         for v in G.Adj[u]:
             if v.d > G.V[u].d + G.Adj[u][v]:
@@ -119,12 +129,12 @@ def BellmanFord(G, s):
     return True
 
 def DagShortestPath(G, s):
-    TopologicalSort(G)
-
     InitializeSingleSource(G, s)
-    for u in G.V:
-        for v in G.Adj[u]:
-            Relax(G.V[u], v, G.Adj[u][v])
+    orderedVertices = TopologicalSort(G)
+
+    for u in orderedVertices:
+        for v in G.Adj[u.key]:
+            Relax(u, v, G.Adj[u.key][v])
 
     return 0
 
@@ -156,8 +166,6 @@ with open(file, 'r') as f:
     for line in f:
         line = line.split()
 
-        print(line)
-
         if line[0][0] not in V:
             V[line[0][0]] = Vertex(line[0][0])
         
@@ -166,20 +174,13 @@ with open(file, 'r') as f:
         for i in range(1, len(line), 2):
             if line[i] not in V:
                 V[line[i]] = Vertex(line[i])
-            Adj[line[0][0]][V[line[i]]] = line[i + 1]
+            Adj[line[0][0]][V[line[i]]] = int(line[i + 1])
 
 
 print('Making graph object...')
-G = Graph(V, Adj) # Make graph object
 
-
-# Print adj list
-for v in G.V:
-    print(v + ": ", end='')
-    for u in G.Adj[v]:
-        print(u.key + " " + str(G.Adj[v][u]) + " ", end='')
-    print()
-
+# Make graph object
+G = Graph(V, Adj) 
 
 while True:
     # Ask for source node
@@ -194,11 +195,12 @@ while True:
         print("Please enter the destination node:")
         destination = input()
         while destination not in G.V or destination==source:
-            print("Invalid input. Please enter a node that is in the graph.")
+            print("Invalid input. Please enter a node that is in the graph (not source).")
             destination = input()
         
         # Check if graph is DAG
-        cycles, negEdges = dfs(G)==-1, HasNegativeEdges(G)
+        cycles, negEdges = dfs(G, G.V[source])==-1, HasNegativeEdges(G)
+        negCycles = False
 
         if cycles and not negEdges:
             print("The graph is not a DAG and does not have negative edges.\nWill run Dijkstra's algorithm.")
@@ -206,23 +208,38 @@ while True:
 
         elif cycles and negEdges:
             print("The graph is not a DAG, and has negative edges.\nWill run Bellman-Ford algorithm.")
-            BellmanFord(G, G.V[source])
-
+            negCycles = not BellmanFord(G, G.V[source])
+            
         else:
             print("The graph is a DAG, will run DAG Shortest Path algorithm.")
             DagShortestPath(G, G.V[source])
 
-        # Print path
-        print("The shortest path from " + source + " to " + destination + " is:")
 
-        path = []
-        u = G.V[destination]
-        while u != G.V[source]:
-            path.append(u.key)
-            u = u.pi
-        path.append(source)
-        path.reverse()
-        print(path)
+        if negCycles:
+            print("The graph has a negative cycle.")
+
+        else: 
+            # Print path
+            print("The shortest path from " + source + " to " + destination + " is:")
+
+            # Check if path exists
+            badPath = False
+            path = []
+            u = G.V[destination]
+            while u != G.V[source]:
+                path.append(u.key)
+                u = u.pi
+                if u == None:
+                    badPath = True
+                    break
+            path.append(source)
+            path.reverse()
+
+            # Check if path exists
+            if badPath:
+                print("No path exists from " + source + " to " + destination + ".", sep="")
+            else:
+                print(" -> ".join(path), " with a distance of ", G.V[destination].d, ".", sep="")
 
         # Ask if user wants to enter new destination
         print("Enter a new destination? (y/n):")
