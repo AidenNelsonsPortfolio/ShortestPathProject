@@ -8,7 +8,6 @@
 
 from os import listdir
 from os.path import isfile
-from time import time_ns
 
 
 class Vertex:
@@ -100,19 +99,29 @@ def ExtractMin(Q):
             break
     return min
 
+def DecreaseKey(heap, i):
+    # This function is used to update a key in the min heap of vertices
+    while i > 0 and heap[(i-1)//2].d > heap[i].d:
+        heap[(i-1)//2], heap[i] = heap[i], heap[(i-1)//2]
+        i = (i-1)//2
+
+
 def Dijkstra (G, s):
     InitializeSingleSource(G, s)
-    S = []
     Q = list(G.V.values())
 
     # Swap s with first element
-    Q[0], Q[Q.index(s)] = Q[Q.index(s)], Q[0]
+    Q[Q.index(s)], Q[0] = Q[0], Q[Q.index(s)]
+
+    keys = set(v.key for v in Q)
 
     while Q != []:
         u = ExtractMin(Q)
-        S.append(u)
+        keys.remove(u.key)
         for v in G.Adj[u.key]:
-            Relax(u, v, G.Adj[u.key][v])
+            if v.key in keys:
+                Relax(u, v, G.Adj[u.key][v])
+                DecreaseKey(Q, Q.index(v))   
 
 
 def BellmanFord(G, s):
@@ -138,125 +147,133 @@ def DagShortestPath(G, s):
 
     return 0
 
+def end():
+    print("Thank you for using the Shortest Path Project!\n\n")
 
-# get files that are txt files
-files = [f for f in listdir() if isfile(f) and f.endswith('.txt')]
 
-# Present file options to user
-print("Welcome to the Shortest Path Project!")
-print("Please select a file to run the program on:")
+############################################################################################################
+# Main
+def main():
+    # get all files that are .txt files
+    files = [f for f in listdir() if isfile(f) and f.endswith('.txt')]
 
-for i in range(len(files)):
-    print(str(i + 1) + ". " + files[i])
+    # Present file options to user
+    print("Welcome to the Shortest Path Project!")
+    print("Please select the number for the file to run the program on:")
 
-# Get user input, check if valid
-userInput = input()
-while not userInput.isdigit() or int(userInput) < 1 or int(userInput) > len(files):
-    print("Invalid input. Please enter a number between 1 and " + str(len(files)))
+    for i in range(len(files)):
+        print(str(i + 1) + ". " + files[i])
+
+    # Get user input, check if valid
     userInput = input()
+    while not userInput.isdigit() or int(userInput) < 1 or int(userInput) > len(files):
+        print("Invalid input. Please enter a number between 1 and " + str(len(files)))
+        userInput = input()
 
-file = files[int(userInput) - 1]
+    file = files[int(userInput) - 1]
 
-# Make graph from file
-V = {}
-Adj = {}
+    # Make graph from file
+    V = {}
+    Adj = {}
 
-print("Opening file " + file + "...")
-with open(file, 'r') as f:
-    for line in f:
-        line = line.split()
+    print("Opening file " + file + "...")
+    with open(file, 'r') as f:
+        for line in f:
+            line = line.split()
 
-        if line[0][0] not in V:
-            V[line[0][0]] = Vertex(line[0][0])
-        
-        Adj[line[0][0]] = {}
-
-        for i in range(1, len(line), 2):
-            if line[i] not in V:
-                V[line[i]] = Vertex(line[i])
-            Adj[line[0][0]][V[line[i]]] = int(line[i + 1])
-
-
-print('Making graph object...')
-
-# Make graph object
-G = Graph(V, Adj) 
-
-while True:
-    # Ask for source node
-    print("Please enter the source node:")
-    source = input()
-    while source not in G.V:
-        print("Invalid input. Please enter a node that is in the graph.")
-        source = input()
-    
-    while True:
-        # Ask for destination node
-        print("Please enter the destination node:")
-        destination = input()
-        while destination not in G.V or destination==source:
-            print("Invalid input. Please enter a node that is in the graph (not source).")
-            destination = input()
-        
-        # Check if graph is DAG
-        cycles, negEdges = dfs(G, G.V[source])==-1, HasNegativeEdges(G)
-        negCycles = False
-
-        if cycles and not negEdges:
-            print("The graph is not a DAG and does not have negative edges.\nWill run Dijkstra's algorithm.")
-            Dijkstra(G, G.V[source])
-
-        elif cycles and negEdges:
-            print("The graph is not a DAG, and has negative edges.\nWill run Bellman-Ford algorithm.")
-            negCycles = not BellmanFord(G, G.V[source])
+            if line[0][0] not in V:
+                V[line[0][0]] = Vertex(line[0][0])
             
-        else:
-            print("The graph is a DAG, will run DAG Shortest Path algorithm.")
-            DagShortestPath(G, G.V[source])
+            Adj[line[0][0]] = {}
+
+            for i in range(1, len(line), 2):
+                if line[i] not in V:
+                    V[line[i]] = Vertex(line[i])
+                Adj[line[0][0]][V[line[i]]] = int(line[i + 1])
 
 
-        if negCycles:
-            print("The graph has a negative cycle.")
+    print('Making graph object...')
 
-        else: 
-            # Print path
-            print("The shortest path from " + source + " to " + destination + " is:")
+    # Make graph object
+    G = Graph(V, Adj) 
 
-            # Check if path exists
-            badPath = False
-            path = []
-            u = G.V[destination]
-            while u != G.V[source]:
-                path.append(u.key)
-                u = u.pi
-                if u == None:
-                    badPath = True
-                    break
-            path.append(source)
-            path.reverse()
+    while True:
+        # Ask for source node
+        print("Please enter the source node:")
+        source = input()
+        while source not in G.V:
+            print("Invalid input. Please enter a node that is in the graph.")
+            source = input()
+        
+        while True:
+            # Ask for destination node
+            print("Please enter the destination node:")
+            destination = input()
+            while destination not in G.V or destination==source:
+                print("Invalid input. Please enter a node that is in the graph (not source).")
+                destination = input()
+            
+            # Check if graph is DAG
+            cycles, negEdges = dfs(G, G.V[source])==-1, HasNegativeEdges(G)
+            negCycles = False
 
-            # Check if path exists
-            if badPath:
-                print("No path exists from " + source + " to " + destination + ".", sep="")
+            if cycles and not negEdges:
+                print("\nThe graph is not a DAG and does not have negative edges.\nWill run Dijkstra's algorithm.\n")
+                Dijkstra(G, G.V[source])
+
+            elif cycles and negEdges:
+                print("\nThe graph is not a DAG, and has negative edges.\nWill run Bellman-Ford algorithm.\n")
+                negCycles = not BellmanFord(G, G.V[source])
+                
             else:
-                print(" -> ".join(path), " with a distance of ", G.V[destination].d, ".", sep="")
+                print("\nThe graph is a DAG, will run DAG Shortest Path algorithm.\n")
+                DagShortestPath(G, G.V[source])
 
-        # Ask if user wants to enter new destination
-        print("Enter a new destination? (y/n):")
+
+            if negCycles:
+                print("The graph has a negative cycle. Cannot compute shortest path.\n")
+                return
+
+            else: 
+                # Print path
+                print("The shortest path from " + source + " to " + destination + " is:")
+
+                # Check if path exists
+                badPath = False
+                path = []
+                u = G.V[destination]
+                while u != G.V[source]:
+                    path.append(u.key)
+                    u = u.pi
+                    if u == None:
+                        badPath = True
+                        break
+                path.append(source)
+                path.reverse()
+
+                # Check if path exists
+                if badPath:
+                    print("No path exists from " + source + " to " + destination + ".", sep="")
+                else:
+                    print(" -> ".join(path), " with a distance of ", G.V[destination].d, ".", sep="")
+
+            # Ask if user wants to enter new destination
+            print("Enter a new destination? (y/n):")
+            userInput = input()
+            while userInput != 'y' and userInput != 'n':
+                print("Invalid input. Please enter y or n.")
+                userInput = input()
+            if userInput == 'n':
+                break
+
+        # Ask if user wants to enter new source node
+        print("Enter a new source node? (y/n):")
         userInput = input()
         while userInput != 'y' and userInput != 'n':
             print("Invalid input. Please enter y or n.")
             userInput = input()
         if userInput == 'n':
-            break
+            return
 
-    # Ask if user wants to enter new source node
-    print("Enter a new source node? (y/n):")
-    userInput = input()
-    while userInput != 'y' and userInput != 'n':
-        print("Invalid input. Please enter y or n.")
-        userInput = input()
-    if userInput == 'n':
-        break
-
-print("Thank you for using the Shortest Path Project!")
+main()
+end()
