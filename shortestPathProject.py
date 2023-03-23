@@ -35,6 +35,8 @@ def dfs(G, s):
         v.pi = None
     time = 0
     time = dfsVisit(G, s, time)
+    if time == -1:
+        return -1
     for v in G.V.values():
         if v.color == 'white':
             time = dfsVisit(G, v, time)
@@ -53,6 +55,7 @@ def dfsVisit(G, u, time):
             if time == -1:
                 return -1
         if v.color == 'gray':
+            print("\nWhile doing dfs, it was found that", u.key, "to", v.key, "is a back edge")
             return -1
     u.color = 'black'
     time += 1
@@ -140,7 +143,6 @@ def BellmanFord(G, s):
 def DagShortestPath(G, s):
     InitializeSingleSource(G, s)
     orderedVertices = TopologicalSort(G)
-
     for u in orderedVertices:
         for v in G.Adj[u.key]:
             Relax(u, v, G.Adj[u.key][v])
@@ -180,16 +182,17 @@ def main():
     with open(file, 'r') as f:
         for line in f:
             line = line.split()
-
-            if line[0][0] not in V:
-                V[line[0][0]] = Vertex(line[0][0])
+            key = line[0].split(":")
+            key = key[0]
+            if key not in V:
+                V[key] = Vertex(key)
             
-            Adj[line[0][0]] = {}
+            Adj[key] = {}
 
             for i in range(1, len(line), 2):
                 if line[i] not in V:
                     V[line[i]] = Vertex(line[i])
-                Adj[line[0][0]][V[line[i]]] = int(line[i + 1])
+                Adj[key][V[line[i]]] = int(line[i + 1])
 
 
     print('Making graph object...')
@@ -200,7 +203,7 @@ def main():
     while True:
         # Ask for source node
         print("Please enter the source node:")
-        source = input()
+        source = input()        
         while source not in G.V:
             print("Invalid input. Please enter a node that is in the graph.")
             source = input()
