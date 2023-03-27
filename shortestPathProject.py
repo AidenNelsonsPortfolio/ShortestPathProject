@@ -160,16 +160,18 @@ def main():
     files = [f for f in listdir() if isfile(f) and f.endswith('.txt')]
 
     # Present file options to user
-    print("Welcome to the Shortest Path Project!")
+    print("Welcome to the Shortest Path Project!\n")
     print("Please select the number for the file to run the program on:")
 
     for i in range(len(files)):
         print(str(i + 1) + ". " + files[i])
 
     # Get user input, check if valid
+    print("\nFile # choice: ", end="")
     userInput = input()
     while not userInput.isdigit() or int(userInput) < 1 or int(userInput) > len(files):
         print("Invalid input. Please enter a number between 1 and " + str(len(files)))
+        print("\nFile # choice: ", end="")
         userInput = input()
 
     file = files[int(userInput) - 1]
@@ -178,7 +180,7 @@ def main():
     V = {}
     Adj = {}
 
-    print("Opening file " + file + "...")
+    print("\nOpening file " + file + "...")
     with open(file, 'r') as f:
         for line in f:
             line = line.split()
@@ -202,78 +204,78 @@ def main():
 
     while True:
         # Ask for source node
-        print("Please enter the source node:")
+        print("\nPlease enter the source node: ", end="")
         source = input()        
         while source not in G.V:
             print("Invalid input. Please enter a node that is in the graph.")
+            print("\nPlease enter the source node: ", end="")
             source = input()
         
+        # Check if graph is DAG
+        cycles, negEdges = dfs(G, G.V[source])==-1, HasNegativeEdges(G)
+        negCycles = False
+
+        if cycles and not negEdges:
+            print("\nThe graph is not a DAG and does not have negative edges.\nWill run Dijkstra's algorithm.\n")
+            Dijkstra(G, G.V[source])
+
+        elif cycles and negEdges:
+            print("\nThe graph is not a DAG, and has negative edges.\nWill run Bellman-Ford algorithm.\n")
+            negCycles = not BellmanFord(G, G.V[source])
+            
+        else:
+            print("\nThe graph is a DAG, will run DAG Shortest Path algorithm.\n")
+            DagShortestPath(G, G.V[source])
+
+        if negCycles:
+            print("The graph has a negative cycle. Cannot compute shortest path.\n")
+            return
+
         while True:
             # Ask for destination node
-            print("Please enter the destination node:")
+            print("Please enter the destination node: ", end="")
             destination = input()
             while destination not in G.V or destination==source:
                 print("Invalid input. Please enter a node that is in the graph (not source).")
+                print("\nPlease enter the destination node: ", end="")
                 destination = input()
             
-            # Check if graph is DAG
-            cycles, negEdges = dfs(G, G.V[source])==-1, HasNegativeEdges(G)
-            negCycles = False
+            # Check if path exists
+            badPath = False
+            path = []
+            u = G.V[destination]
+            while u != G.V[source]:
+                path.append(u.key)
+                u = u.pi
+                if u == None:
+                    badPath = True
+                    break
+            path.append(source)
+            path.reverse()
 
-            if cycles and not negEdges:
-                print("\nThe graph is not a DAG and does not have negative edges.\nWill run Dijkstra's algorithm.\n")
-                Dijkstra(G, G.V[source])
-
-            elif cycles and negEdges:
-                print("\nThe graph is not a DAG, and has negative edges.\nWill run Bellman-Ford algorithm.\n")
-                negCycles = not BellmanFord(G, G.V[source])
-                
+            # Check if path exists
+            if badPath:
+                print("\nNo path exists from " + source + " to " + destination + ".", sep="")
             else:
-                print("\nThe graph is a DAG, will run DAG Shortest Path algorithm.\n")
-                DagShortestPath(G, G.V[source])
-
-
-            if negCycles:
-                print("The graph has a negative cycle. Cannot compute shortest path.\n")
-                return
-
-            else: 
-                # Print path
-                print("The shortest path from " + source + " to " + destination + " is:")
-
-                # Check if path exists
-                badPath = False
-                path = []
-                u = G.V[destination]
-                while u != G.V[source]:
-                    path.append(u.key)
-                    u = u.pi
-                    if u == None:
-                        badPath = True
-                        break
-                path.append(source)
-                path.reverse()
-
-                # Check if path exists
-                if badPath:
-                    print("No path exists from " + source + " to " + destination + ".", sep="")
-                else:
-                    print(" -> ".join(path), " with a distance of ", G.V[destination].d, ".", sep="")
+                print("\nThe shortest path from " + source + " to " + destination + " is:")
+                print(" -> ".join(path), " with a distance of ", G.V[destination].d, ".", sep="")
 
             # Ask if user wants to enter new destination
-            print("Enter a new destination? (y/n):")
+            print("\nEnter a new destination? (y/n): ", end="")
             userInput = input()
             while userInput != 'y' and userInput != 'n':
                 print("Invalid input. Please enter y or n.")
+                print("\nEnter a new destination? (y/n): ", end="")
                 userInput = input()
             if userInput == 'n':
                 break
 
         # Ask if user wants to enter new source node
-        print("Enter a new source node? (y/n):")
+        print("\nEnter a new source node? (y/n): ", end="")
         userInput = input()
         while userInput != 'y' and userInput != 'n':
             print("Invalid input. Please enter y or n.")
+            print("\nEnter a new source node? (y/n): ", end="")
             userInput = input()
         if userInput == 'n':
             return
