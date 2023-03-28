@@ -9,7 +9,13 @@ different graph algorithms to find the shortest path between a
 source and destination node input by the user (built from a 
 '.txt' input file).
 
------------------------------------------------------------------
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+By the way, I did implement my own ExtractMin and DecreaseKey 
+operations for my heap, instead of using any external modules.
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
 
 To begin this program, place it in the folder with the graph files
 that you would like to run it on. Be sure that it is in the exact
