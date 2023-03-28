@@ -150,7 +150,7 @@ def DagShortestPath(G, s):
     return 0
 
 def end():
-    print("Thank you for using the Shortest Path Project!\n\n")
+    print("\nThank you for using the Shortest Path Project!\n")
 
 
 ############################################################################################################
