@@ -1,6 +1,6 @@
 Name: Aiden Nelson
 EID: 800742353
-Date of Last Edit: 3/22/2023
+Date of Last Edit: 3/25/2023
 
 --Built for CS340--
 
@@ -11,7 +11,7 @@ source and destination node input by the user (built from a
 
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-By the way, I did implement my own ExtractMin and DecreaseKey 
+BY THE WAY, I did implement my own ExtractMin and DecreaseKey 
 operations for my heap, instead of using any external modules.
 
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -48,6 +48,8 @@ Next, the program will determine the ideal graph algorithm to use,
 either DAG Shortest Path, Dijkstra's, and Bellman-Ford (in that order)
 
 Then, it will display the shortest path to that node and the distance to it.
+
+The path will display as Node1 -> Node2 -> ... and then the total path weight.
 
 -----------------------------------------------------------------
 

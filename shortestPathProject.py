@@ -228,7 +228,7 @@ def main():
             DagShortestPath(G, G.V[source])
 
         if negCycles:
-            print("The graph has a negative cycle. Cannot compute shortest path.\n")
+            print("The graph has a negative cycle. Cannot compute shortest path.")
             return
 
         while True:
@@ -262,21 +262,21 @@ def main():
 
             # Ask if user wants to enter new destination
             print("\nEnter a new destination? (y/n): ", end="")
-            userInput = input()
+            userInput = input().lower()
             while userInput != 'y' and userInput != 'n':
                 print("Invalid input. Please enter y or n.")
                 print("\nEnter a new destination? (y/n): ", end="")
-                userInput = input()
+                userInput = input().lower()
             if userInput == 'n':
                 break
 
         # Ask if user wants to enter new source node
         print("\nEnter a new source node? (y/n): ", end="")
-        userInput = input()
+        userInput = input().lower()
         while userInput != 'y' and userInput != 'n':
             print("Invalid input. Please enter y or n.")
             print("\nEnter a new source node? (y/n): ", end="")
-            userInput = input()
+            userInput = input().lower()
         if userInput == 'n':
             return
 
